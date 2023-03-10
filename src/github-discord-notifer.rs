@@ -13,7 +13,7 @@ pub async fn run() -> anyhow::Result<()> {
         "LFX mentorship".to_string(),
     ];
 
-    listen_to_event(owner, repo, vec!["issue"], |payload| {
+    listen_to_event(owner, repo, vec!["issues", "issue_comment"], |payload| {
         handler(payload, &label_watch_list)
     })
     .await;
