@@ -52,33 +52,37 @@ async fn handler(payload: EventPayload, label_watch_list: &Vec<String>) {
             let payload = e.to_string();
             let val: Value = serde_json::from_str(&payload).unwrap();
 
-            let issue: &Value = &val["issue"];
-
-            let issue_title = &issue["title"].as_str().unwrap();
-            let issue_url = &issue["url"].as_str().unwrap();
-            let user = &issue["user"]["login"].as_str().unwrap();
-
-            match issue["labels"].as_array() {
+            match val.get("issue") {
                 None => (),
 
-                Some(labels) => {
-                    for label in labels {
-                        let label_name = label["name"]
-                            .as_str()
-                            .expect("no label found")
-                            .to_lowercase();
+                Some(issue) => {
+                    let issue_title = &issue["title"].as_str().unwrap();
+                    let issue_url = &issue["url"].as_str().unwrap();
+                    let user = &issue["user"]["login"].as_str().unwrap();
 
-                        if lowercase_list.contains(&label_name) {
-                            let body = format!(
-                                r#"Issue: {issue_title} by {user} 
+                    match issue["labels"].as_array() {
+                        None => (),
+
+                        Some(labels) => {
+                            for label in labels {
+                                let label_name = label["name"]
+                                    .as_str()
+                                    .expect("no label found")
+                                    .to_lowercase();
+
+                                if lowercase_list.contains(&label_name) {
+                                    let body = format!(
+                                        r#"Issue: {issue_title} by {user} 
                             {issue_url}"#
-                            );
-                            send_message_to_channel("ik8", "general", body);
-                            return;
+                                    );
+                                    send_message_to_channel("ik8", "general", body);
+                                    return;
+                                }
+                            }
                         }
                     }
                 }
-            }
+            };
         }
 
         _ => (),
