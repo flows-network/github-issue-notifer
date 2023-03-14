@@ -1,5 +1,4 @@
 use github_flows::{listen_to_event, octocrab::models::IssueEvent, EventPayload};
-use serde_json::Value;
 use slack_flows::send_message_to_channel;
 use tokio::*;
 #[no_mangle]
@@ -27,64 +26,36 @@ async fn handler(payload: EventPayload, label_watch_list: &Vec<String>) {
         .map(|word| word.to_ascii_lowercase())
         .collect::<Vec<String>>();
 
+    let mut issue = None;
+
     match payload {
         EventPayload::IssuesEvent(e) => {
-            let issue = e.issue;
-            let issue_title = issue.title;
-            let issue_url = issue.url;
-            let user = issue.user.login;
-            let labels = issue.labels;
-
-            for label in labels {
-                let label_name = label.name.to_lowercase();
-                if lowercase_list.contains(&label_name) {
-                    let body = format!(
-                        r#"Issue: {issue_title} by {user} 
-                    {issue_url}"#
-                    );
-                    send_message_to_channel("ik8", "general", body);
-                    return;
-                }
-            }
+            issue = Some(e.issue);
         }
 
-        EventPayload::UnknownEvent(e) => {
-            let payload = e.to_string();
-            let val: Value = serde_json::from_str(&payload).unwrap();
-
-            match val.get("issue") {
-                None => (),
-
-                Some(issue) => {
-                    let issue_title = &issue["title"].as_str().unwrap();
-                    let issue_url = &issue["url"].as_str().unwrap();
-                    let user = &issue["user"]["login"].as_str().unwrap();
-
-                    match issue["labels"].as_array() {
-                        None => (),
-
-                        Some(labels) => {
-                            for label in labels {
-                                let label_name = label["name"]
-                                    .as_str()
-                                    .expect("no label found")
-                                    .to_lowercase();
-
-                                if lowercase_list.contains(&label_name) {
-                                    let body = format!(
-                                        r#"Issue: {issue_title} by {user} 
-                            {issue_url}"#
-                                    );
-                                    send_message_to_channel("ik8", "general", body);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            };
+        EventPayload::IssueCommentEvent(e) => {
+            issue = Some(e.issue);
         }
 
         _ => (),
+    }
+
+    if let Some(issue) = issue {
+        let issue_title = issue.title;
+        let issue_url = issue.url;
+        let user = issue.user.login;
+        let labels = issue.labels;
+
+        for label in labels {
+            let label_name = label.name.to_lowercase();
+            if lowercase_list.contains(&label_name) {
+                let body = format!(
+                    r#"Issue: {issue_title} by {user} 
+                    {issue_url}"#
+                );
+                send_message_to_channel("ik8", "general", body);
+                return;
+            }
+        }
     }
 }
