@@ -42,7 +42,7 @@ async fn handler(payload: EventPayload, label_watch_list: &Vec<String>) {
 
     if let Some(issue) = issue {
         let issue_title = issue.title;
-        let issue_url = issue.url;
+        let issue_url = issue.html_url;
         let user = issue.user.login;
         let labels = issue.labels;
 
