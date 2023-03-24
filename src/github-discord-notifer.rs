@@ -55,7 +55,7 @@ async fn handler(payload: EventPayload, label_watch_list: &Vec<String>) {
             let label_name = label.name.to_lowercase();
             if lowercase_list.contains(&label_name) {
                 let body = format!(
-                    r#"Issue: {issue_title} by {user} 
+                    r#"A new issue that needs your help: {issue_title} by {user} 
                     {issue_url}"#
                 );
                 send_message_to_channel("ik8", "general", body);
