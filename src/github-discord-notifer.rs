@@ -4,6 +4,7 @@ use tokio::*;
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() -> anyhow::Result<()> {
+    let login = "jaykchen";
     let owner = "jaykchen";
     let repo = "vitesse-lite";
     let label_watch_list = vec![
@@ -12,9 +13,13 @@ pub async fn run() -> anyhow::Result<()> {
         "LFX mentorship".to_string(),
     ];
 
-    listen_to_event(owner, repo, vec!["issues", "issue_comment"], |payload| {
-        handler(payload, &label_watch_list)
-    })
+    listen_to_event(
+        login,
+        owner,
+        repo,
+        vec!["issues", "issue_comment"],
+        |payload| handler(payload, &label_watch_list),
+    )
     .await;
 
     Ok(())
